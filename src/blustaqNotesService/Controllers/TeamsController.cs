@@ -1,6 +1,7 @@
 using bluestaqNotesService.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
+using System.Threading.Tasks;
 
 namespace bluestaqNotesService.Controllers
 {
@@ -16,6 +17,51 @@ namespace bluestaqNotesService.Controllers
         public TeamsController(SqliteDatabase db)
         {
             _db = db;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="teamId"></param>
+        /// <returns></returns>
+        private bool TeamExists(int teamId)
+        {
+            using var connection = _db.CreateConnection();
+            connection.Open();
+
+            var checkTeamExists = connection.CreateCommand();
+            checkTeamExists.CommandText = "SELECT COUNT(1) FROM Teams WHERE Id = @teamId;";
+            checkTeamExists.Parameters.AddWithValue("@teamId", teamId);
+            var teamExists = (long)(checkTeamExists.ExecuteScalar() ?? 0L) > 0;
+
+            return teamExists;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="teamId"></param>
+        /// <returns></returns>
+        private string UserBelongsToTeam(int userId, int teamId)
+        {
+            using var connection = _db.CreateConnection();
+            connection.Open();
+
+            var checkUserCmd = connection.CreateCommand();
+            checkUserCmd.CommandText = "SELECT Username FROM Users WHERE Id = @userId AND TeamId = @teamId;";
+            checkUserCmd.Parameters.AddWithValue("@userId", userId);
+            checkUserCmd.Parameters.AddWithValue("@teamId", teamId);
+
+            using var userReader = checkUserCmd.ExecuteReader();
+            if(!userReader.Read())
+            {
+                return string.Empty;
+            }
+            string username = userReader.GetString(0);
+            userReader.Close();
+
+            return username;
         }
 
         /// <summary>
@@ -51,20 +97,20 @@ namespace bluestaqNotesService.Controllers
             return Created($"/api/teams/{teamId}", team);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="teamId"></param>
+        /// <param name="userName"></param>
+        /// <returns></returns>
         [HttpPost("{teamId}/users")]
         public async Task<IActionResult> AddUser(int teamId, [FromBody] string userName)
         {
             using var connection = _db.CreateConnection();
             await connection.OpenAsync();
 
-            // Validation
-            var checkTeamExists = connection.CreateCommand();
-            checkTeamExists.CommandText = "SELECT COUNT(1) FROM Teams WHERE Id = @teamId;";
-            checkTeamExists.Parameters.AddWithValue("@teamId", teamId);
-            var teamExists = (long)(await checkTeamExists.ExecuteScalarAsync() ?? 0L) > 0;
-
-            // Short-circut
-            if(!teamExists)
+            // Validation Short-circut
+            if(!TeamExists(teamId))
             {
                 return NotFound("Team not found.");
             }
@@ -85,6 +131,70 @@ namespace bluestaqNotesService.Controllers
             };
 
             return Created($"/api/teams/{teamId}/users/{userId}", user);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="teamId"></param>
+        /// <param name="createdById"></param>
+        /// <param name="title"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        [HttpPost("{teamId}/notes")]
+        public async Task<IActionResult> CreateNote(int teamId, [FromBody] int createdById, [FromBody] string title, [FromBody] string content)
+        {
+            using var connection = _db.CreateConnection();
+            await connection.OpenAsync();
+
+            // Validation circutry
+            if(!TeamExists(teamId))
+            {
+                return NotFound("Team not found.");
+            }
+
+            string username = UserBelongsToTeam(createdById, teamId);
+            if (username == string.Empty)
+            {
+                return BadRequest("Invalid user or user does not belong to this team.");
+            }
+
+            // SQL
+            DateTime now = DateTime.UtcNow;
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                INSERT INTO Notes (TeamId, CreatedById, Title, Content, CreatedAt, UpdatedAt)
+                VALUES (@teamId, @createdById, @title, @content, @createdAt, @updatedAt);
+                SELECT last_insert_rowid();";
+
+            command.Parameters.AddWithValue("@teamId", teamId);
+            command.Parameters.AddWithValue("@createdById", createdById);
+            command.Parameters.AddWithValue("@title", title);
+            command.Parameters.AddWithValue("@content", content);
+            command.Parameters.AddWithValue("@createdAt", now.ToString("0"));
+            command.Parameters.AddWithValue("@updatedAt", now.ToString("0"));
+
+            // Note object
+            var noteId = (long)await command.ExecuteScalarAsync();
+
+            Note note = new Note
+            {
+                Id = (int)noteId,
+                TeamId = teamId,
+                CreatedById = createdById,
+                Title = title,
+                Content = content,
+                CreatedAt = now,
+                UpdatedAt = now,
+                CreatedBy = new User
+                {
+                    Id = createdById,
+                    TeamId = teamId,
+                    Username = username
+                }
+            };
+
+            return Created($"/api/notes/{noteId}", note)
         }
     }
 }
