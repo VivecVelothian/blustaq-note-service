@@ -196,5 +196,53 @@ namespace bluestaqNotesService.Controllers
 
             return Created($"/api/notes/{noteId}", note)
         }
+
+        [HttpGet("{teamId/notes")]
+        public async Task<IActionResult> GetTeamNotes(int teamId)
+        {
+            using var connection = _db.CreateConnection();
+            await connection.OpenAsync();
+
+            // Validation circut
+            if(!TeamExists(teamId))
+            {
+                return NotFound("Team not found.");
+            }
+
+            // SQL
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                SELECT n.Id, n.TeamId, n.Title, n.Content, n.CreatedAt, n.UpdatedAt, u.Id as UserId, u.Username
+                FROM Notes n
+                JOIN Users u ON n.CreatedById = u.Id
+                Where n.TeamId = @teamId";
+            command.Parameters.AddWithValue("@teamId", teamId);
+
+
+            // Get the notes
+            List<Note> notes = new List<Note>();
+            using var reader = await command.ExecuteReaderAsync();
+            while(await reader.ReadAsync())
+            {
+                var note = new Note
+                {
+                    Id        = reader.GetInt32(0),
+                    TeamId    = reader.GetInt32(1),
+                    Title     = reader.GetString(2),
+                    Content   = reader.GetString(3),
+                    CreatedAt = DateTime.Parse(reader.GetString(4)),
+                    UpdatedAt = DateTime.Parse(reader.GetString(5)),
+                    CreatedBy = new User
+                    {
+                        Id       = reader.GetInt32(6),
+                        TeamId   = reader.GetInt32(1),
+                        Username = reader.GetString(7)
+                    }
+                };
+                notes.Add(note);
+            }
+
+            return Ok(notes);
+        }
     }
 }
