@@ -5,6 +5,8 @@ VisualStudioVersion = 17.14.36212.18
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bluestaqNotesService", "src\blustaqNotesService\bluestaqNotesService.csproj", "{03CC45AF-FB53-2594-C764-DD701B2E3F80}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bluestackNotesServiceTests", "tests\bluestackNotesServiceTests\bluestackNotesServiceTests.csproj", "{831DD493-E9B6-4CCA-83EA-88F9EFFF11A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{03CC45AF-FB53-2594-C764-DD701B2E3F80}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03CC45AF-FB53-2594-C764-DD701B2E3F80}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03CC45AF-FB53-2594-C764-DD701B2E3F80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{831DD493-E9B6-4CCA-83EA-88F9EFFF11A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{831DD493-E9B6-4CCA-83EA-88F9EFFF11A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{831DD493-E9B6-4CCA-83EA-88F9EFFF11A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{831DD493-E9B6-4CCA-83EA-88F9EFFF11A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

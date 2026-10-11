@@ -79,9 +79,9 @@ namespace bluestaqNotesService.Controllers
 
             // SQL
             var command = connection.CreateCommand();
-            command.CommandText = "INSERT INTO Teams (Name, Createdat) VALUES (@name, @createdAt); SELECT last_insert_rowid();";
+            command.CommandText = "INSERT INTO Teams (Name, CreatedAt) VALUES (@name, @createdAt); SELECT last_insert_rowid();";
             command.Parameters.AddWithValue("@name", name);
-            command.Parameters.AddWithValue("@createdAt", createdAt.ToString("0"));
+            command.Parameters.AddWithValue("@createdAt", createdAt.ToString("O"));
 
             var teamId = (long)await command.ExecuteScalarAsync();
 
@@ -171,8 +171,8 @@ namespace bluestaqNotesService.Controllers
             command.Parameters.AddWithValue("@createdById", createdById);
             command.Parameters.AddWithValue("@title", title);
             command.Parameters.AddWithValue("@content", content);
-            command.Parameters.AddWithValue("@createdAt", now.ToString("0"));
-            command.Parameters.AddWithValue("@updatedAt", now.ToString("0"));
+            command.Parameters.AddWithValue("@createdAt", now.ToString("O"));
+            command.Parameters.AddWithValue("@updatedAt", now.ToString("O"));
 
             // Note object
             var noteId = (long)await command.ExecuteScalarAsync();
