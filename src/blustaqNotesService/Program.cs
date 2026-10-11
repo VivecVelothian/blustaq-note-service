@@ -15,6 +15,7 @@ var app = builder.Build();
 var db = app.Services.GetRequiredService<SqliteDatabase>();
 db.Initialize();
 
+// Configure OpenAPI and run
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseHttpsRedirection();

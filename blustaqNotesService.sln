@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36212.18
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "blustaqNotesService", "src\blustaqNotesService\blustaqNotesService.csproj", "{03CC45AF-FB53-2594-C764-DD701B2E3F80}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bluestaqNotesService", "src\blustaqNotesService\bluestaqNotesService.csproj", "{03CC45AF-FB53-2594-C764-DD701B2E3F80}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

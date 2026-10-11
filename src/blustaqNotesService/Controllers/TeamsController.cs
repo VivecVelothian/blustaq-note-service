@@ -1,33 +1,46 @@
+using bluestaqNotesService.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.Sqlite;
 
-namespace blustaqNotesService.Controllers
+namespace bluestaqNotesService.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/teams")]
     public class TeamsController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+        private readonly SqliteDatabase _db;
 
-        private readonly ILogger<TeamsController> _logger;
-
-        public TeamsController(ILogger<TeamsController> logger)
+        public TeamsController(SqliteDatabase db)
         {
-            _logger = logger;
+            _db = db;
         }
 
-        [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> Get()
+        [HttpPost]
+        public async Task<IActionResult> CreateTeam([FromBody] string name)
         {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            // Establish DB conn
+            using var connection = _db.CreateConnection();
+            await connection.OpenAsync();
+            DateTime createdAt = DateTime.UtcNow; // record time once for both creation and return
+
+            // SQL
+            var command = connection.CreateCommand();
+            command.CommandText = "INSERT INTO Teams (Name, Createdat) VALUES (@name, @createdAt); SELECT last_insert_rowid();";
+            command.Parameters.AddWithValue("@name", name);
+            command.Parameters.AddWithValue("@createdAt", createdAt.ToString("0"));
+
+            var teamId = (long)await command.ExecuteScalarAsync();
+
+            // Build team model
+            Team team = new Team
             {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
+                Id = (int)teamId,
+                Name = name,
+                CreatedAt = createdAt
+            };
+
+            // return success
+            return Created($"/api/teams/{teamId}", team);
         }
     }
 }
