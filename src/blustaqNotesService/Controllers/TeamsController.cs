@@ -194,7 +194,7 @@ namespace bluestaqNotesService.Controllers
                 }
             };
 
-            return Created($"/api/notes/{noteId}", note)
+            return Created($"/api/notes/{noteId}", note);
         }
 
         [HttpGet("{teamId/notes")]
