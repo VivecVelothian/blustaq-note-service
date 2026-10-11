@@ -1,0 +1,1 @@
+# blustaq-note-service
